@@ -1,0 +1,23 @@
+app:
+  name: "logic"
+  version: "0.0.1"
+log:
+  level: "debug"
+rpc:
+  addr: ":0"
+web:
+  addr: ":8000"
+etcd:
+  - "127.0.0.1:2379"
+mysql:
+  data_source: "root:123456@tcp(172.16.13.4:3306)/zim?parseTime=true&loc=Local"
+  max_idle: 10
+  max_open: 100
+redis:
+  addr: "127.0.0.1:6379"
+  password: ""
+  db: 0
+nats:
+  addr: "nats://127.0.0.1:4222"
+#jaeger:
+#  addr: "172.16.13.66:6831"

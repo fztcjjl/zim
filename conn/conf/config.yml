@@ -1,0 +1,18 @@
+app:
+  name: "conn"
+  version: "0.0.1"
+  server_id: "1"
+log:
+  level: "debug"
+rpc:
+  addr: ":0"
+tcp:
+  addr: ":3001"
+ws:
+  addr: ":3002"
+etcd:
+  - "127.0.0.1:2379"
+nats:
+  addr: "nats://127.0.0.1:4222"
+#jaeger:
+#  addr: "172.16.13.66:6831"

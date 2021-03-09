@@ -1,0 +1,94 @@
+syntax = "proto3";
+
+option go_package = "github.com/fztcjjl/zim/api/protocol;protocol";
+
+package protocol;
+
+enum CmdId {
+  Cmd_Raw = 0;
+
+  Cmd_Noop = 6;
+  Cmd_Signalling = 243;
+
+  Cmd_AuthReq = 1001;
+  Cmd_AuthRsp = 1002;
+  Cmd_SendReq = 1003;
+  Cmd_SendRsp = 1004;
+  Cmd_SyncMsgReq = 1005;
+  Cmd_SyncMsgRsp = 1006;
+  Cmd_MsgAckReq = 1007;
+  Cmd_MsgAckRsp = 1008;
+
+  Cmd_Kick = 2001;
+  Cmd_PushMsg = 2002;
+}
+
+message AuthReq {
+  string uin = 1;
+  string platform = 2;
+  string token = 3;
+  string device = 4;
+}
+
+message AuthRsp {
+  int32 code = 1;
+  string message = 2;
+}
+
+message HeartbeatReq {
+}
+
+message HeartbeatRsp {
+}
+
+message SendReq {
+  int32 conv_type = 1;
+  int32 msg_type = 2;
+  string from = 3;
+  string to = 4;
+  string content = 5;
+  int64 client_time = 6;
+  string extra = 7;
+}
+
+message SendRsp {
+  int64 id = 1;
+  int64 seq = 2;
+  int64 send_time = 3;
+}
+
+message Msg {
+  int64 id = 1;
+  int32 conv_type = 2;
+  int32 type = 3;
+  string content = 4;
+  string from = 5;
+  string to = 6;
+  string extra = 7;
+  int64 send_time = 8;
+  int64 seq = 9;
+}
+
+message MsgNotify {
+
+}
+
+message Kick {
+  string kick_reason = 1;
+}
+
+message SyncMsgReq {
+  int64 offset = 1;
+  int64 limit = 2;
+}
+
+message SyncMsgRsp {
+  repeated Msg list = 1;
+}
+
+message MsgAckReq {
+  int64 id = 1;
+}
+
+message MsgAckRsp {
+}

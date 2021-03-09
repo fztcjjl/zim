@@ -1,0 +1,102 @@
+syntax = "proto3";
+
+option go_package = "github.com/fztcjjl/zim/api/logic;logic";
+
+package logic;
+
+message PushMsg {
+  string server = 1;
+  repeated string conn_ids = 2;
+  bytes msg = 3;
+}
+
+service Logic {
+  rpc Connect(ConnectReq) returns (ConnectRsp) {}
+  rpc Disconnect(DisconnectReq) returns (DisconnectRsp) {}
+  rpc Heartbeat(HeartbeatReq) returns (HeartbeatRsp) {}
+  rpc SendMsg(SendReq) returns (SendRsp) {}
+  rpc SyncMsg(SyncMsgReq) returns (SyncMsgRsp) {}
+  rpc MsgAck(MsgAckReq) returns (MsgAckRsp) {}
+}
+
+message ConnectReq {
+  string uin = 1;
+  string platform = 2;
+  string server = 3;
+  string token = 4;
+  string device = 5;
+}
+
+message ConnectRsp {
+  int32 code = 1;
+  string message = 2;
+  string conn_id = 3;
+  string kicked_conn_id = 4;
+  string kicked_reason = 5;
+}
+
+message DisconnectReq {
+  string uin = 1;
+  string platform = 2;
+}
+
+message DisconnectRsp {
+}
+
+message HeartbeatReq {
+  string uin = 1;
+  string conn_id = 2;
+  string server = 3;
+}
+
+message HeartbeatRsp {
+}
+
+message SendReq {
+  int32 conv_type = 1;
+  int32 msg_type = 2;
+  string from = 3;
+  string to = 4;
+  string content = 5;
+  string extra = 6;
+  int64 client_time = 7;
+  string conn_id = 8;
+}
+
+message SendRsp {
+  int32 code = 1;
+  string message = 2;
+  int64 id = 3;
+  int64 seq = 4;
+  int64 send_time = 5;
+}
+
+message SyncMsgReq {
+  string uin = 1;
+  string conn_id = 2;
+  int64 offset = 3;
+  int64 limit = 4;
+}
+
+message SyncMsgRsp {
+  repeated Msg list = 1;
+}
+
+message Msg {
+  int64 id = 1;
+  int32 conv_type = 2;
+  int32 type = 3;
+  string content = 4;
+  string from = 5;
+  string to = 6;
+  string extra = 7;
+  int64 send_time = 8;
+  int64 seq = 9;
+}
+
+message MsgAckReq {
+  int64 id = 1;
+}
+
+message MsgAckRsp {
+}
