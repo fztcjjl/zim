@@ -11,6 +11,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/panjf2000/gnet"
 	"github.com/panjf2000/gnet/pool/goroutine"
+	"time"
 )
 
 type Handler struct {
@@ -34,21 +35,29 @@ func (h *Handler) OnInitComplete(srv gnet.Server) (action gnet.Action) {
 
 func (h *Handler) OnOpened(c gnet.Conn) (out []byte, action gnet.Action) {
 	log.Debug("TCP OnOpened ...")
-	c.SetContext(app.AuthPending)
+	s := &app.Session{
+		Status: app.AuthPending,
+		Conn:   c,
+	}
+	c.SetContext(s)
+
+	// 10秒钟之内没有认证成功，关闭连接
+	s.TimerTask = h.app.GetTimer().AfterFunc(time.Second*10, func() {
+		c.Close()
+	})
 	return
 }
 
 func (h *Handler) OnClosed(c gnet.Conn, err error) (action gnet.Action) {
 	log.Debug("TCP OnClose ...")
-	s := h.app.DelSessionByConn(c)
 
-	status, ok := c.Context().(int)
+	s, ok := c.Context().(*app.Session)
 	if !ok {
 		return
 	}
 
-	if status != app.Authed {
-		return
+	if s.ConnId != "" {
+		h.app.DelSessionByConnId(s.ConnId)
 	}
 
 	h.workerPool.Submit(func() {
@@ -66,7 +75,7 @@ func (h *Handler) OnClosed(c gnet.Conn, err error) (action gnet.Action) {
 }
 
 func (h *Handler) React(data []byte, c gnet.Conn) (out []byte, action gnet.Action) {
-	status, ok := c.Context().(int)
+	s, ok := c.Context().(*app.Session)
 	if !ok {
 		return
 	}
@@ -77,12 +86,12 @@ func (h *Handler) React(data []byte, c gnet.Conn) (out []byte, action gnet.Actio
 			c.Close()
 			return
 		}
-		if status == app.AuthPending {
+		if s.Status == app.AuthPending {
 			if err := h.handleAuth(c, p); err != nil {
 				c.Close()
 				return
 			} else {
-				c.SetContext(app.Authed)
+				s.Status = app.Authed
 				return
 			}
 		} else {
@@ -96,6 +105,12 @@ func (h *Handler) React(data []byte, c gnet.Conn) (out []byte, action gnet.Actio
 
 func (h *Handler) handleAuth(c gnet.Conn, p *protocol.Proto) (err error) {
 	log.Info("handleAuth ...")
+
+	s, ok := c.Context().(*app.Session)
+	if !ok {
+		return
+	}
+
 	req := &protocol.AuthReq{}
 
 	rsp := &protocol.AuthRsp{
@@ -163,14 +178,16 @@ func (h *Handler) handleAuth(c gnet.Conn, p *protocol.Proto) (err error) {
 		}
 	}
 
-	s := &app.Session{
-		ConnId:   rspL.ConnId,
-		Conn:     c,
-		Uin:      reqL.Uin,
-		Platform: reqL.Platform,
-		Server:   h.app.GetServerId(),
-	}
+	s.ConnId = rspL.ConnId
+	s.Conn = c
+	s.Uin = reqL.Uin
+	s.Platform = req.Platform
+	s.Server = h.app.GetServerId()
 	h.app.AddSession(s)
+
+	// 取消定时任务
+	s.TimerTask.Cancel()
+	s.TimerTask = nil
 
 	return
 }
@@ -194,6 +211,11 @@ func (h *Handler) handleMsgAckReq(c gnet.Conn, p *protocol.Proto) (err error) {
 }
 
 func (h *Handler) handleSyncMsg(c gnet.Conn, p *protocol.Proto) (err error) {
+	s, ok := c.Context().(*app.Session)
+	if !ok {
+		return
+	}
+
 	req := &protocol.SyncMsgReq{}
 	rsp := &protocol.SyncMsgRsp{}
 
@@ -215,7 +237,6 @@ func (h *Handler) handleSyncMsg(c gnet.Conn, p *protocol.Proto) (err error) {
 		return
 	}
 
-	s := h.app.GetSessionByConn(c)
 	logicClient := h.app.GetLogicClient()
 	reqL := logic.SyncMsgReq{
 		Uin:    s.Uin,
@@ -251,26 +272,34 @@ func (h *Handler) handleSyncMsg(c gnet.Conn, p *protocol.Proto) (err error) {
 }
 
 func (h *Handler) handleNoop(c gnet.Conn, p *protocol.Proto) (err error) {
+	s, ok := c.Context().(*app.Session)
+	if !ok {
+		return
+	}
+
 	buf := &bytes.Buffer{}
 	p.Write(buf)
 	c.AsyncWrite(buf.Bytes())
 
-	s := h.app.GetSessionByConn(c)
-	if s != nil {
-		logicClient := h.app.GetLogicClient()
-		req := logic.HeartbeatReq{
-			Uin:    s.Uin,
-			ConnId: s.ConnId,
-			Server: s.Server,
-		}
-		logicClient.Heartbeat(context.Background(), &req)
+	logicClient := h.app.GetLogicClient()
+	req := logic.HeartbeatReq{
+		Uin:    s.Uin,
+		ConnId: s.ConnId,
+		Server: s.Server,
 	}
+	logicClient.Heartbeat(context.Background(), &req)
 
 	return
 }
 
 func (h *Handler) handleSend(c gnet.Conn, p *protocol.Proto) (err error) {
 	log.Info("handleSend ...")
+
+	s, ok := c.Context().(*app.Session)
+	if !ok {
+		return
+	}
+
 	req := &protocol.SendReq{}
 
 	rsp := &protocol.AuthRsp{
@@ -299,7 +328,6 @@ func (h *Handler) handleSend(c gnet.Conn, p *protocol.Proto) (err error) {
 		return
 	}
 
-	s := h.app.GetSessionByConn(c)
 	logicClient := h.app.GetLogicClient()
 	r := logic.SendReq{
 		ConvType:   req.ConvType,

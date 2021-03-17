@@ -21,7 +21,12 @@ func (w *Codec) Encode(c gnet.Conn, buf []byte) ([]byte, error) {
 }
 
 func (w *Codec) Decode(c gnet.Conn) ([]byte, error) {
-	if c.Context() == nil {
+	s, ok := c.Context().(*app.Session)
+	if !ok {
+		return nil, nil
+	}
+
+	if s.Status == app.WsUpgrading {
 		r, out, err := websocket.ReadRequest(c)
 		if err != nil {
 			if err == websocket.ErrShortPackaet {
@@ -32,12 +37,11 @@ func (w *Codec) Decode(c gnet.Conn) ([]byte, error) {
 		out, err = websocket.Upgrade(c, r)
 		c.AsyncWrite(out)
 		if err == nil {
-			c.SetContext(app.AuthPending)
+			s.Status = app.AuthPending
 		}
 
 		return nil, err
 	} else {
-		//status := c.Context().(int)
 		header, err := websocket.ReadHeader(c)
 		if err != nil {
 			return nil, err

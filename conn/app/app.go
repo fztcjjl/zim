@@ -3,6 +3,7 @@ package app
 import (
 	"bytes"
 	"fmt"
+	"github.com/fztcjjl/zim/pkg/ztimer"
 	"os"
 	"os/signal"
 	"sync"
@@ -22,6 +23,7 @@ import (
 )
 
 const (
+	WsUpgrading = 0
 	AuthPending = 1
 	Authed      = 2
 )
@@ -34,13 +36,16 @@ type App struct {
 	serverId  string
 	tcpServer *TcpServer
 	wsServer  *WsServer
+	timer     *ztimer.Timer
 	// TODO: 分桶
-	idSessions   map[string]*Session
-	connSessions map[gnet.Conn]*Session
-	logicClient  logic.LogicClient
+	idSessions  map[string]*Session
+	logicClient logic.LogicClient
 }
 
 type Session struct {
+	Status    int
+	TimerTask *ztimer.TimerTask
+
 	ConnId   string
 	Conn     gnet.Conn
 	Uin      string
@@ -51,7 +56,6 @@ type Session struct {
 func NewApp(opt ...Option) *App {
 	app := new(App)
 	app.idSessions = make(map[string]*Session)
-	app.connSessions = make(map[gnet.Conn]*Session)
 	app.loadConfig()
 	app.initLogger()
 	//app.initTracer()
@@ -68,25 +72,14 @@ func NewApp(opt ...Option) *App {
 		app.wsServer = NewWsServer(app, app.config.GetString("ws.addr"))
 	}
 
+	app.timer = ztimer.NewTimer(100, 20)
 	return app
 }
 
 func (a *App) AddSession(s *Session) {
 	a.Lock()
 	a.idSessions[s.ConnId] = s
-	a.connSessions[s.Conn] = s
 	a.Unlock()
-}
-
-func (a *App) DelSessionByConn(c gnet.Conn) (s *Session) {
-	a.Lock()
-	s = a.connSessions[c]
-	if s != nil {
-		delete(a.connSessions, c)
-		delete(a.idSessions, s.ConnId)
-	}
-	a.Unlock()
-	return s
 }
 
 func (a *App) DelSessionByConnId(id string) (s *Session) {
@@ -94,18 +87,10 @@ func (a *App) DelSessionByConnId(id string) (s *Session) {
 	s = a.idSessions[id]
 	if s != nil {
 		delete(a.idSessions, id)
-		delete(a.connSessions, s.Conn)
 	}
 
 	a.Unlock()
 
-	return
-}
-
-func (a *App) GetSessionByConn(c gnet.Conn) (s *Session) {
-	a.Lock()
-	s = a.connSessions[c]
-	a.Unlock()
 	return
 }
 
@@ -134,6 +119,10 @@ func (a *App) GetWsServer() *WsServer {
 
 func (a *App) Name() string {
 	return a.config.GetString("app.name")
+}
+
+func (a *App) GetTimer() *ztimer.Timer {
+	return a.timer
 }
 
 func (a *App) Init(opt ...Option) {
@@ -235,7 +224,6 @@ func (a *App) consume() {
 		for _, v := range pushMsg.ConnIds {
 			if s := a.idSessions[v]; s != nil {
 				if s.Conn != nil {
-					log.Debug("tttttttttttttttttttttttttt")
 					p := protocol.Proto{
 						HeaderLen:     20,
 						ClientVersion: 1,
