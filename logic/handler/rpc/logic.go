@@ -147,8 +147,8 @@ func (l *Logic) sendC2C(ctx context.Context, req *logic.SendReq) (rsp *logic.Sen
 	log.Debug(req)
 
 	db := dao.GetDB()
-	fromSeq, err := incr(1, req.From)
-	toSeq, err := incr(1, req.To)
+	fromSeq, err := incr(req.From)
+	toSeq, err := incr(req.To)
 	m1 := model.ImMsgRecv00{}
 
 	now := time.Now()
@@ -203,12 +203,10 @@ func (l *Logic) sendC2C(ctx context.Context, req *logic.SendReq) (rsp *logic.Sen
 		return nil
 	})
 
-	log.Info("LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL")
 	if err != nil {
 		log.Error(err)
 		return
 	}
-	log.Info("NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN")
 	p := protocol.Msg{
 		Id:       m1.Id,
 		ConvType: req.ConvType,
@@ -235,23 +233,23 @@ func (l *Logic) sendC2C(ctx context.Context, req *logic.SendReq) (rsp *logic.Sen
 
 	return
 }
-func incr(objType int, objId string) (seq int64, err error) {
+func incr(userId string) (seq int64, err error) {
 	db := dao.GetDB()
 	err = db.Transaction(func(tx *gorm.DB) error {
-		err := tx.Raw("select seq from seq where obj_type=? and obj_id=? for update", objType, objId).Row().Scan(&seq)
+		err := tx.Raw("select seq from seq where user_id=? for update", userId).Row().Scan(&seq)
 		if err != nil && err != sql.ErrNoRows {
 			log.Error(err)
 			return err
 		}
 
 		if err == sql.ErrNoRows {
-			err = tx.Exec("insert into seq (obj_type,obj_id,seq) values (?,?,?)", objType, objId, seq+1).Error
+			err = tx.Exec("insert into seq (user_id,seq) values (?,?)", userId, seq+1).Error
 			if err != nil {
 				log.Error(err)
 				return err
 			}
 		} else {
-			err = tx.Exec("update seq set seq = seq + 1 where obj_type = ? and obj_id = ?", objType, objId).Error
+			err = tx.Exec("update seq set seq = seq + 1 where user_id = ?", userId).Error
 			if err != nil {
 				log.Error(err)
 				return err

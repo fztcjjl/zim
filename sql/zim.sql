@@ -189,8 +189,7 @@ CREATE TABLE IF NOT EXISTS `im_msg_recv_07` (
 -- 导出  表 zim.seq 结构
 CREATE TABLE IF NOT EXISTS `seq` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `obj_type` tinyint(4) NOT NULL DEFAULT '0',
-  `obj_id` varchar(50) NOT NULL DEFAULT '0',
+  `user_id` varchar(50) NOT NULL DEFAULT '0',
   `seq` bigint(20) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC COMMENT='序号生成器';
