@@ -53,9 +53,11 @@ message SendReq {
 }
 
 message SendRsp {
-  int64 id = 1;
-  int64 send_time = 2;
-  int64 seq = 3;
+  int32 code = 1;
+  string message = 2;
+  int64 id = 3;
+  int64 send_time = 4;
+  int64 seq = 5;
 }
 
 message Msg {

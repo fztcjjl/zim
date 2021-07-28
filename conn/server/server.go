@@ -374,7 +374,7 @@ func (s *Server) handleSend(client *Client, p *Packet) (err error) {
 	log.Info("handleSend ...")
 	req := &protocol.SendReq{}
 
-	rsp := &protocol.AuthRsp{
+	rsp := &protocol.SendRsp{
 		Code:    0,
 		Message: "成功",
 	}
@@ -420,5 +420,7 @@ func (s *Server) handleSend(client *Client, p *Packet) (err error) {
 
 	rsp.Code = rspL.Code
 	rsp.Message = rspL.Message
+	rsp.Id = rspL.Id
+	rsp.SendTime = rspL.SendTime
 	return
 }

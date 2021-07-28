@@ -197,7 +197,7 @@ func (c *Client) receive() {
 					return
 				}
 
-				log.Println("send rsp ...")
+				log.Println("send rsp ...", m)
 			}
 			if p.Cmd == uint32(protocol.CmdId_Cmd_PushMsg) {
 				m := protocol.Msg{}
