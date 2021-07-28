@@ -1,4 +1,4 @@
-package protocol
+package server
 
 import (
 	"bytes"
@@ -18,7 +18,7 @@ const (
 	HeaderLen = 20
 )
 
-type Proto struct {
+type Packet struct {
 	HeaderLen     uint32
 	ClientVersion uint32
 	Cmd           uint32
@@ -27,7 +27,7 @@ type Proto struct {
 	Body          []byte
 }
 
-func (p *Proto) Read(data []byte) (err error) {
+func (p *Packet) Read(data []byte) (err error) {
 	if len(data) < HeaderLen {
 		err = fmt.Errorf("packet error")
 		return
@@ -62,7 +62,7 @@ func (p *Proto) Read(data []byte) (err error) {
 	return
 }
 
-func (p *Proto) Write(buf *bytes.Buffer) (err error) {
+func (p *Packet) Write(buf *bytes.Buffer) (err error) {
 	p.HeaderLen = HeaderLen
 	p.ClientVersion = 1
 	p.BodyLen = uint32(len(p.Body))

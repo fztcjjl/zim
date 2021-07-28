@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"github.com/fztcjjl/zim/api/protocol"
+	"github.com/fztcjjl/zim/conn/server"
 	"github.com/golang/protobuf/proto"
 	"log"
 	"math/rand"
@@ -81,7 +82,7 @@ func (c *Client) Start() (err error) {
 
 		mb, _ := proto.Marshal(&m)
 
-		p := protocol.Proto{
+		p := server.Packet{
 			HeaderLen:     headerLen,
 			ClientVersion: 1,
 			Cmd:           uint32(protocol.CmdId_Cmd_SendReq),
@@ -112,7 +113,7 @@ func (c *Client) auth() (err error) {
 		return
 	}
 
-	p := protocol.Proto{
+	p := server.Packet{
 		HeaderLen:     headerLen,
 		ClientVersion: 1,
 		Cmd:           uint32(protocol.CmdId_Cmd_AuthReq),
@@ -139,7 +140,7 @@ func (c *Client) sync() (err error) {
 		return
 	}
 
-	p := protocol.Proto{
+	p := server.Packet{
 		HeaderLen:     headerLen,
 		ClientVersion: 1,
 		Cmd:           uint32(protocol.CmdId_Cmd_SyncMsgReq),
@@ -178,7 +179,7 @@ func (c *Client) receive() {
 				break
 			}
 
-			p := protocol.Proto{}
+			p := server.Packet{}
 			p.Read(data[:headerLen+bodyLen])
 			c.inputBuffer.Retrieve(int(headerLen + bodyLen))
 
@@ -237,7 +238,7 @@ func (c *Client) heartbeat() {
 
 }
 
-func (c *Client) Write(p *protocol.Proto) (err error) {
+func (c *Client) Write(p *server.Packet) (err error) {
 	buf := &bytes.Buffer{}
 	p.Write(buf)
 	_, err = c.conn.Write([]byte(buf.Bytes()))

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	log "github.com/fztcjjl/tiger/trpc/logger"
-	"github.com/fztcjjl/zim/api/protocol"
 	"github.com/fztcjjl/zim/pkg/errors"
 	"github.com/panjf2000/gnet"
 	"time"
@@ -81,9 +80,9 @@ func (_ *TcpCodec) Encode(c gnet.Conn, buf []byte) ([]byte, error) {
 }
 
 func (_ *TcpCodec) Decode(c gnet.Conn) ([]byte, error) {
-	if size, header := c.ReadN(protocol.HeaderLen); size == protocol.HeaderLen {
+	if size, header := c.ReadN(HeaderLen); size == HeaderLen {
 		byteBuffer := bytes.NewBuffer(header)
-		var p protocol.Proto
+		var p Packet
 		if err := binary.Read(byteBuffer, binary.BigEndian, &p.HeaderLen); err != nil {
 			return nil, err
 		}
@@ -100,7 +99,7 @@ func (_ *TcpCodec) Decode(c gnet.Conn) ([]byte, error) {
 			return nil, err
 		}
 
-		protocolLen := int(protocol.HeaderLen + p.BodyLen)
+		protocolLen := int(HeaderLen + p.BodyLen)
 		if size, data := c.ReadN(protocolLen); size == protocolLen {
 			c.ShiftN(protocolLen)
 			log.Info(data)

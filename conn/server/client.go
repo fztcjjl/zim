@@ -2,7 +2,6 @@ package server
 
 import (
 	"bytes"
-	"github.com/fztcjjl/zim/api/protocol"
 	"github.com/fztcjjl/zim/pkg/ztimer"
 	"github.com/panjf2000/gnet"
 )
@@ -21,7 +20,7 @@ func (c *Client) Write(data []byte) error {
 	return c.Conn.AsyncWrite(data)
 }
 
-func (c *Client) WritePacket(p *protocol.Proto) error {
+func (c *Client) WritePacket(p *Packet) error {
 	buf := &bytes.Buffer{}
 	p.Write(buf)
 	return c.Conn.AsyncWrite(buf.Bytes())

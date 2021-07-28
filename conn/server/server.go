@@ -132,7 +132,7 @@ func (s *Server) consume() {
 		for _, v := range pushMsg.ConnIds {
 			if client := s.GetClientManager().Get(v); client != nil {
 				if client.Conn != nil {
-					p := protocol.Proto{
+					p := Packet{
 						HeaderLen:     20,
 						ClientVersion: 1,
 						Cmd:           uint32(protocol.CmdId_Cmd_PushMsg),
@@ -184,7 +184,7 @@ func (s *Server) OnClose(client *Client) {
 
 func (s *Server) OnMessage(data []byte, client *Client) {
 	s.workerPool.Submit(func() {
-		p := &protocol.Proto{}
+		p := &Packet{}
 		if err := p.Read(data); err != nil {
 			client.Close()
 			return
@@ -203,7 +203,7 @@ func (s *Server) OnMessage(data []byte, client *Client) {
 
 }
 
-func (s *Server) handleAuth(client *Client, p *protocol.Proto) (err error) {
+func (s *Server) handleAuth(client *Client, p *Packet) (err error) {
 	log.Info("handleAuth ...")
 
 	req := &protocol.AuthReq{}
@@ -285,7 +285,7 @@ func (s *Server) handleAuth(client *Client, p *protocol.Proto) (err error) {
 	return
 }
 
-func (s *Server) handleProto(client *Client, p *protocol.Proto) (err error) {
+func (s *Server) handleProto(client *Client, p *Packet) (err error) {
 	if p.Cmd == uint32(protocol.CmdId_Cmd_Noop) {
 		err = s.handleNoop(client, p)
 	} else if p.Cmd == uint32(protocol.CmdId_Cmd_SendReq) {
@@ -299,11 +299,11 @@ func (s *Server) handleProto(client *Client, p *protocol.Proto) (err error) {
 	return
 }
 
-func (s *Server) handleMsgAckReq(client *Client, p *protocol.Proto) (err error) {
+func (s *Server) handleMsgAckReq(client *Client, p *Packet) (err error) {
 	return
 }
 
-func (s *Server) handleSyncMsg(client *Client, p *protocol.Proto) (err error) {
+func (s *Server) handleSyncMsg(client *Client, p *Packet) (err error) {
 	req := &protocol.SyncMsgReq{}
 	rsp := &protocol.SyncMsgRsp{}
 
@@ -357,7 +357,7 @@ func (s *Server) handleSyncMsg(client *Client, p *protocol.Proto) (err error) {
 	return
 }
 
-func (s *Server) handleNoop(client *Client, p *protocol.Proto) (err error) {
+func (s *Server) handleNoop(client *Client, p *Packet) (err error) {
 	client.WritePacket(p)
 	logicClient := s.GetLogicClient()
 	req := logic.HeartbeatReq{
@@ -370,7 +370,7 @@ func (s *Server) handleNoop(client *Client, p *protocol.Proto) (err error) {
 	return
 }
 
-func (s *Server) handleSend(client *Client, p *protocol.Proto) (err error) {
+func (s *Server) handleSend(client *Client, p *Packet) (err error) {
 	log.Info("handleSend ...")
 	req := &protocol.SendReq{}
 
