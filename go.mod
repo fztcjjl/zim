@@ -25,5 +25,6 @@ require (
 	google.golang.org/grpc v1.29.1
 	google.golang.org/protobuf v1.25.0
 	gorm.io/driver/mysql v1.0.4
-	gorm.io/gorm v1.21.3
+	gorm.io/gorm v1.21.7
+	gorm.io/plugin/soft_delete v1.0.2 // indirect
 )
