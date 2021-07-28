@@ -44,17 +44,18 @@ message HeartbeatRsp {
 message SendReq {
   int32 conv_type = 1;
   int32 msg_type = 2;
-  string from = 3;
-  string to = 4;
+  string sender = 3;
+  string target = 4;
   string content = 5;
-  int64 client_time = 6;
-  string extra = 7;
+  string extra = 6;
+  repeated string at_user_list = 7;
+  bool is_transparent = 8;
 }
 
 message SendRsp {
   int64 id = 1;
-  int64 seq = 2;
-  int64 send_time = 3;
+  int64 send_time = 2;
+  int64 seq = 3;
 }
 
 message Msg {
@@ -62,15 +63,11 @@ message Msg {
   int32 conv_type = 2;
   int32 type = 3;
   string content = 4;
-  string from = 5;
-  string to = 6;
+  string sender = 5;
+  string target = 6;
   string extra = 7;
   int64 send_time = 8;
-  int64 seq = 9;
-}
-
-message MsgNotify {
-
+  repeated string at_user_list = 9;
 }
 
 message Kick {

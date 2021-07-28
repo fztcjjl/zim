@@ -10,189 +10,44 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 
--- 导出  表 zim.im_msg_recv_00 结构
-CREATE TABLE IF NOT EXISTS `im_msg_recv_00` (
-  `id` bigint(20) NOT NULL COMMENT '消息ID',
+-- 导出  表 zim.im_msg_recv 结构
+CREATE TABLE IF NOT EXISTS `im_msg_recv` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '系统编号',
+  `msg_id` bigint(20) NOT NULL COMMENT '消息ID',
   `conv_type` tinyint(4) NOT NULL COMMENT '会话类型[1:单聊;2:群聊]',
-  `type` int(11) NOT NULL DEFAULT '0' COMMENT '消息类型[1:文本;2:图片消息;3:语音:4:视频;5:文件;6:地理位置;100:自定义]',
   `content` varchar(5000) NOT NULL DEFAULT '' COMMENT '内容',
-  `extra` varchar(1000) NOT NULL DEFAULT '' COMMENT '额外内容',
+  `extra` varchar(1000) NOT NULL DEFAULT '' COMMENT '扩展',
+  `type` int(11) NOT NULL DEFAULT '0' COMMENT '消息类型[1:文本;2:图片消息;3:语音:4:视频;5:文件;6:地理位置;100:自定义]',
   `created_at` datetime NOT NULL COMMENT '创建时间',
   `updated_at` datetime NOT NULL COMMENT '更新时间',
-  `from` varchar(50) NOT NULL DEFAULT '' COMMENT '发送者',
-  `to` varchar(50) NOT NULL DEFAULT '' COMMENT '接收者',
-  `read_time` datetime DEFAULT NULL COMMENT '阅读时间',
-  `delivered` tinyint(4) NOT NULL DEFAULT '0' COMMENT '送达状态[0:未送达;1:已送达]',
+  `deleted_at` bigint(20) NOT NULL DEFAULT '0' COMMENT '删除时间',
+  `sender` varchar(50) NOT NULL DEFAULT '' COMMENT '发送者',
   `target` varchar(50) NOT NULL DEFAULT '' COMMENT '目标',
-  `seq` bigint(20) NOT NULL DEFAULT '0' COMMENT '消息序号',
-  `client_time` bigint(20) NOT NULL DEFAULT '0' COMMENT '客户端发送时间',
+  `receiver` varchar(50) NOT NULL DEFAULT '' COMMENT '接收者',
+  `at_user_list` varchar(5000) NOT NULL DEFAULT '' COMMENT '@用户列表',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC COMMENT='消息收件箱';
 
 -- 数据导出被取消选择。
 
 
--- 导出  表 zim.im_msg_recv_01 结构
-CREATE TABLE IF NOT EXISTS `im_msg_recv_01` (
-  `id` bigint(20) NOT NULL COMMENT '消息ID',
+-- 导出  表 zim.im_msg_send 结构
+CREATE TABLE IF NOT EXISTS `im_msg_send` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '系统编号',
+  `msg_id` bigint(20) NOT NULL COMMENT '消息ID',
   `conv_type` tinyint(4) NOT NULL COMMENT '会话类型[1:单聊;2:群聊]',
-  `type` int(11) NOT NULL DEFAULT '0' COMMENT '消息类型[1:文本;2:图片消息;3:语音:4:视频;5:文件;6:地理位置;100:自定义]',
   `content` varchar(5000) NOT NULL DEFAULT '' COMMENT '内容',
-  `extra` varchar(1000) NOT NULL DEFAULT '' COMMENT '额外内容',
+  `extra` varchar(1000) NOT NULL DEFAULT '' COMMENT '扩展',
+  `type` int(11) NOT NULL DEFAULT '0' COMMENT '消息类型[1:文本;2:图片消息;3:语音:4:视频;5:文件;6:地理位置;100:自定义]',
   `created_at` datetime NOT NULL COMMENT '创建时间',
   `updated_at` datetime NOT NULL COMMENT '更新时间',
-  `from` varchar(50) NOT NULL DEFAULT '' COMMENT '发送者',
-  `to` varchar(50) NOT NULL DEFAULT '' COMMENT '接收者',
-  `read_time` datetime DEFAULT NULL COMMENT '阅读时间',
-  `delivered` tinyint(4) NOT NULL DEFAULT '0' COMMENT '送达状态[0:未送达;1:已送达]',
+  `deleted_at` bigint(20) NOT NULL DEFAULT '0' COMMENT '删除时间',
+  `sender` varchar(50) NOT NULL DEFAULT '' COMMENT '发送者',
   `target` varchar(50) NOT NULL DEFAULT '' COMMENT '目标',
-  `seq` bigint(20) NOT NULL DEFAULT '0' COMMENT '消息序号',
-  `client_time` bigint(20) NOT NULL DEFAULT '0' COMMENT '客户端发送时间',
+  `at_user_list` varchar(5000) NOT NULL DEFAULT '' COMMENT '@用户列表',
+  `read_time` bigint(20) NOT NULL DEFAULT '0' COMMENT '消息读取时间',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC COMMENT='消息收件箱';
-
--- 数据导出被取消选择。
-
-
--- 导出  表 zim.im_msg_recv_02 结构
-CREATE TABLE IF NOT EXISTS `im_msg_recv_02` (
-  `id` bigint(20) NOT NULL COMMENT '消息ID',
-  `conv_type` tinyint(4) NOT NULL COMMENT '会话类型[1:单聊;2:群聊]',
-  `type` int(11) NOT NULL DEFAULT '0' COMMENT '消息类型[1:文本;2:图片消息;3:语音:4:视频;5:文件;6:地理位置;100:自定义]',
-  `content` varchar(5000) NOT NULL DEFAULT '' COMMENT '内容',
-  `extra` varchar(1000) NOT NULL DEFAULT '' COMMENT '额外内容',
-  `created_at` datetime NOT NULL COMMENT '创建时间',
-  `updated_at` datetime NOT NULL COMMENT '更新时间',
-  `from` varchar(50) NOT NULL DEFAULT '' COMMENT '发送者',
-  `to` varchar(50) NOT NULL DEFAULT '' COMMENT '接收者',
-  `read_time` datetime DEFAULT NULL COMMENT '阅读时间',
-  `delivered` tinyint(4) NOT NULL DEFAULT '0' COMMENT '送达状态[0:未送达;1:已送达]',
-  `target` varchar(50) NOT NULL DEFAULT '' COMMENT '目标',
-  `seq` bigint(20) NOT NULL DEFAULT '0' COMMENT '消息序号',
-  `client_time` bigint(20) NOT NULL DEFAULT '0' COMMENT '客户端发送时间',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC COMMENT='消息收件箱';
-
--- 数据导出被取消选择。
-
-
--- 导出  表 zim.im_msg_recv_03 结构
-CREATE TABLE IF NOT EXISTS `im_msg_recv_03` (
-  `id` bigint(20) NOT NULL COMMENT '消息ID',
-  `conv_type` tinyint(4) NOT NULL COMMENT '会话类型[1:单聊;2:群聊]',
-  `type` int(11) NOT NULL DEFAULT '0' COMMENT '消息类型[1:文本;2:图片消息;3:语音:4:视频;5:文件;6:地理位置;100:自定义]',
-  `content` varchar(5000) NOT NULL DEFAULT '' COMMENT '内容',
-  `extra` varchar(1000) NOT NULL DEFAULT '' COMMENT '额外内容',
-  `created_at` datetime NOT NULL COMMENT '创建时间',
-  `updated_at` datetime NOT NULL COMMENT '更新时间',
-  `from` varchar(50) NOT NULL DEFAULT '' COMMENT '发送者',
-  `to` varchar(50) NOT NULL DEFAULT '' COMMENT '接收者',
-  `read_time` datetime DEFAULT NULL COMMENT '阅读时间',
-  `delivered` tinyint(4) NOT NULL DEFAULT '0' COMMENT '送达状态[0:未送达;1:已送达]',
-  `target` varchar(50) NOT NULL DEFAULT '' COMMENT '目标',
-  `seq` bigint(20) NOT NULL DEFAULT '0' COMMENT '消息序号',
-  `client_time` bigint(20) NOT NULL DEFAULT '0' COMMENT '客户端发送时间',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC COMMENT='消息收件箱';
-
--- 数据导出被取消选择。
-
-
--- 导出  表 zim.im_msg_recv_04 结构
-CREATE TABLE IF NOT EXISTS `im_msg_recv_04` (
-  `id` bigint(20) NOT NULL COMMENT '消息ID',
-  `conv_type` tinyint(4) NOT NULL COMMENT '会话类型[1:单聊;2:群聊]',
-  `type` int(11) NOT NULL DEFAULT '0' COMMENT '消息类型[1:文本;2:图片消息;3:语音:4:视频;5:文件;6:地理位置;100:自定义]',
-  `content` varchar(5000) NOT NULL DEFAULT '' COMMENT '内容',
-  `extra` varchar(1000) NOT NULL DEFAULT '' COMMENT '额外内容',
-  `created_at` datetime NOT NULL COMMENT '创建时间',
-  `updated_at` datetime NOT NULL COMMENT '更新时间',
-  `from` varchar(50) NOT NULL DEFAULT '' COMMENT '发送者',
-  `to` varchar(50) NOT NULL DEFAULT '' COMMENT '接收者',
-  `read_time` datetime DEFAULT NULL COMMENT '阅读时间',
-  `delivered` tinyint(4) NOT NULL DEFAULT '0' COMMENT '送达状态[0:未送达;1:已送达]',
-  `target` varchar(50) NOT NULL DEFAULT '' COMMENT '目标',
-  `seq` bigint(20) NOT NULL DEFAULT '0' COMMENT '消息序号',
-  `client_time` bigint(20) NOT NULL DEFAULT '0' COMMENT '客户端发送时间',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC COMMENT='消息收件箱';
-
--- 数据导出被取消选择。
-
-
--- 导出  表 zim.im_msg_recv_05 结构
-CREATE TABLE IF NOT EXISTS `im_msg_recv_05` (
-  `id` bigint(20) NOT NULL COMMENT '消息ID',
-  `conv_type` tinyint(4) NOT NULL COMMENT '会话类型[1:单聊;2:群聊]',
-  `type` int(11) NOT NULL DEFAULT '0' COMMENT '消息类型[1:文本;2:图片消息;3:语音:4:视频;5:文件;6:地理位置;100:自定义]',
-  `content` varchar(5000) NOT NULL DEFAULT '' COMMENT '内容',
-  `extra` varchar(1000) NOT NULL DEFAULT '' COMMENT '额外内容',
-  `created_at` datetime NOT NULL COMMENT '创建时间',
-  `updated_at` datetime NOT NULL COMMENT '更新时间',
-  `from` varchar(50) NOT NULL DEFAULT '' COMMENT '发送者',
-  `to` varchar(50) NOT NULL DEFAULT '' COMMENT '接收者',
-  `read_time` datetime DEFAULT NULL COMMENT '阅读时间',
-  `delivered` tinyint(4) NOT NULL DEFAULT '0' COMMENT '送达状态[0:未送达;1:已送达]',
-  `target` varchar(50) NOT NULL DEFAULT '' COMMENT '目标',
-  `seq` bigint(20) NOT NULL DEFAULT '0' COMMENT '消息序号',
-  `client_time` bigint(20) NOT NULL DEFAULT '0' COMMENT '客户端发送时间',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC COMMENT='消息收件箱';
-
--- 数据导出被取消选择。
-
-
--- 导出  表 zim.im_msg_recv_06 结构
-CREATE TABLE IF NOT EXISTS `im_msg_recv_06` (
-  `id` bigint(20) NOT NULL COMMENT '消息ID',
-  `conv_type` tinyint(4) NOT NULL COMMENT '会话类型[1:单聊;2:群聊]',
-  `type` int(11) NOT NULL DEFAULT '0' COMMENT '消息类型[1:文本;2:图片消息;3:语音:4:视频;5:文件;6:地理位置;100:自定义]',
-  `content` varchar(5000) NOT NULL DEFAULT '' COMMENT '内容',
-  `extra` varchar(1000) NOT NULL DEFAULT '' COMMENT '额外内容',
-  `created_at` datetime NOT NULL COMMENT '创建时间',
-  `updated_at` datetime NOT NULL COMMENT '更新时间',
-  `from` varchar(50) NOT NULL DEFAULT '' COMMENT '发送者',
-  `to` varchar(50) NOT NULL DEFAULT '' COMMENT '接收者',
-  `read_time` datetime DEFAULT NULL COMMENT '阅读时间',
-  `delivered` tinyint(4) NOT NULL DEFAULT '0' COMMENT '送达状态[0:未送达;1:已送达]',
-  `target` varchar(50) NOT NULL DEFAULT '' COMMENT '目标',
-  `seq` bigint(20) NOT NULL DEFAULT '0' COMMENT '消息序号',
-  `client_time` bigint(20) NOT NULL DEFAULT '0' COMMENT '客户端发送时间',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC COMMENT='消息收件箱';
-
--- 数据导出被取消选择。
-
-
--- 导出  表 zim.im_msg_recv_07 结构
-CREATE TABLE IF NOT EXISTS `im_msg_recv_07` (
-  `id` bigint(20) NOT NULL COMMENT '消息ID',
-  `conv_type` tinyint(4) NOT NULL COMMENT '会话类型[1:单聊;2:群聊]',
-  `type` int(11) NOT NULL DEFAULT '0' COMMENT '消息类型[1:文本;2:图片消息;3:语音:4:视频;5:文件;6:地理位置;100:自定义]',
-  `content` varchar(5000) NOT NULL DEFAULT '' COMMENT '内容',
-  `extra` varchar(1000) NOT NULL DEFAULT '' COMMENT '额外内容',
-  `created_at` datetime NOT NULL COMMENT '创建时间',
-  `updated_at` datetime NOT NULL COMMENT '更新时间',
-  `from` varchar(50) NOT NULL DEFAULT '' COMMENT '发送者',
-  `to` varchar(50) NOT NULL DEFAULT '' COMMENT '接收者',
-  `read_time` datetime DEFAULT NULL COMMENT '阅读时间',
-  `delivered` tinyint(4) NOT NULL DEFAULT '0' COMMENT '送达状态[0:未送达;1:已送达]',
-  `target` varchar(50) NOT NULL DEFAULT '' COMMENT '目标',
-  `seq` bigint(20) NOT NULL DEFAULT '0' COMMENT '消息序号',
-  `client_time` bigint(20) NOT NULL DEFAULT '0' COMMENT '客户端发送时间',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC COMMENT='消息收件箱';
-
--- 数据导出被取消选择。
-
-
--- 导出  表 zim.seq 结构
-CREATE TABLE IF NOT EXISTS `seq` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
-  `user_id` varchar(50) NOT NULL DEFAULT '0',
-  `seq` bigint(20) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC COMMENT='序号生成器';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC COMMENT='消息发件箱';
 
 -- 数据导出被取消选择。
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;

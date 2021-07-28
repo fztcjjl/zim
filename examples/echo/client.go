@@ -11,7 +11,6 @@ import (
 	"math/rand"
 	"net"
 	"os"
-	"time"
 )
 
 const (
@@ -25,7 +24,7 @@ type Client struct {
 	conn        net.Conn
 	inputBuffer *Buffer
 	seq         uint32
-	syncSeq     int64
+	offset      int64
 	authed      chan bool
 }
 
@@ -71,13 +70,12 @@ func (c *Client) Start() (err error) {
 
 		to := users[rand.Int()%3]
 		m := protocol.SendReq{
-			ConvType:   1, // 会话类型：单聊
-			MsgType:    1, // 文本消息
-			From:       c.user,
-			To:         to,
-			Content:    string(line),
-			ClientTime: time.Now().Unix(),
-			Extra:      "",
+			ConvType: 1, // 会话类型：单聊
+			MsgType:  1, // 文本消息
+			Sender:   c.user,
+			Target:   to,
+			Content:  string(line),
+			Extra:    "",
 		}
 
 		mb, _ := proto.Marshal(&m)
@@ -131,7 +129,7 @@ func (c *Client) auth() (err error) {
 
 func (c *Client) sync() (err error) {
 	req := protocol.SyncMsgReq{
-		Offset: c.syncSeq,
+		Offset: c.offset,
 		Limit:  20,
 	}
 
@@ -223,7 +221,7 @@ func (c *Client) receive() {
 				log.Printf("sync %d msgs\n", size)
 
 				if size > 0 {
-					c.syncSeq = m.List[size-1].Seq
+					c.offset = m.List[size-1].Id
 					c.sync()
 				}
 			}

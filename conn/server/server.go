@@ -341,15 +341,15 @@ func (s *Server) handleSyncMsg(client *Client, p *Packet) (err error) {
 
 	for _, v := range rspL.List {
 		msg := &protocol.Msg{
-			Id:       v.Id,
-			ConvType: v.ConvType,
-			Type:     v.Type,
-			Content:  v.Content,
-			From:     v.From,
-			To:       v.To,
-			Extra:    v.Extra,
-			SendTime: v.SendTime,
-			Seq:      v.Seq,
+			Id:         v.Id,
+			ConvType:   v.ConvType,
+			Type:       v.Type,
+			Content:    v.Content,
+			Sender:     v.Sender,
+			Target:     v.Target,
+			Extra:      v.Extra,
+			SendTime:   v.SendTime,
+			AtUserList: v.AtUserList,
 		}
 		rsp.List = append(rsp.List, msg)
 	}
@@ -400,14 +400,15 @@ func (s *Server) handleSend(client *Client, p *Packet) (err error) {
 
 	logicClient := s.GetLogicClient()
 	r := logic.SendReq{
-		ConvType:   req.ConvType,
-		MsgType:    req.MsgType,
-		From:       req.From,
-		To:         req.To,
-		Content:    req.Content,
-		Extra:      req.Extra,
-		ClientTime: req.ClientTime,
-		ConnId:     client.ConnId,
+		ConnId:        client.ConnId,
+		ConvType:      req.ConvType,
+		MsgType:       req.MsgType,
+		Sender:        req.Sender,
+		Target:        req.Target,
+		Content:       req.Content,
+		Extra:         req.Extra,
+		AtUserList:    req.AtUserList,
+		IsTransparent: req.IsTransparent,
 	}
 	rspL, err := logicClient.SendMsg(context.Background(), &r)
 	if err != nil {

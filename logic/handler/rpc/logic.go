@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"time"
 
@@ -16,8 +15,6 @@ import (
 	"github.com/fztcjjl/zim/pkg/util"
 	"github.com/golang/protobuf/proto"
 	"github.com/google/uuid"
-	"github.com/spf13/cast"
-	"github.com/zentures/cityhash"
 	"gorm.io/gorm"
 )
 
@@ -92,46 +89,30 @@ func (l *Logic) SyncMsg(ctx context.Context, req *logic.SyncMsgReq) (rsp *logic.
 		req.Limit = 100
 	}
 
+	var rows []*model.ImMsgRecv
 	db := dao.GetDB()
-	// 同步新消息
-	index := cast.ToUint32(req.Uin)
-	if index != 0 {
-		index = index % 8
+	var where string
+	if req.Offset == 0 {
+		where = "receiver=? AND msg_id>? AND DATE_SUB(CURDATE(), INTERVAL 7 DAY) <= created_at"
 	} else {
-		index = cityhash.CityHash32([]byte(req.Uin), uint32(len(req.Uin))) % 8
+		where = "receiver=? AND msg_id>?"
 	}
-	sql := "select * from im_msg_recv_%02d where delivered=0 and `to`=? and seq>? order by seq asc limit ?"
-
-	result := db.Raw(fmt.Sprintf(sql, index), req.Uin, req.Offset, req.Limit)
-	if err = result.Error; err != nil {
-		log.Error(err)
+	if err = db.Table("im_msg_recv").Where(where, req.Uin, req.Offset).
+		Order("msg_id ASC").Limit(int(req.Limit)).Find(&rows).Error; err != nil {
 		return
 	}
-
-	rows, err := result.Rows()
-	if err != nil {
-		log.Error(err)
-		return
-	}
-
-	defer rows.Close()
 
 	rsp = &logic.SyncMsgRsp{}
-	for rows.Next() {
-		v := model.ImMsgRecv00{}
-		if err = db.ScanRows(rows, &v); err != nil {
-			return nil, err
-		}
+	for _, v := range rows {
 		msg := logic.Msg{
-			Id:       v.Id,
+			Id:       v.MsgId,
 			ConvType: int32(v.ConvType),
 			Type:     int32(v.Type),
 			Content:  v.Content,
-			From:     v.From,
-			To:       v.To,
+			Sender:   v.Sender,
+			Target:   v.Target,
 			Extra:    v.Extra,
 			SendTime: util.TimeToUnix(v.CreatedAt),
-			Seq:      v.Seq,
 		}
 		rsp.List = append(rsp.List, &msg)
 	}
@@ -147,119 +128,81 @@ func (l *Logic) sendC2C(ctx context.Context, req *logic.SendReq) (rsp *logic.Sen
 	log.Debug(req)
 
 	db := dao.GetDB()
-	fromSeq, err := incr(req.From)
-	toSeq, err := incr(req.To)
-	m1 := model.ImMsgRecv00{}
+	msg := model.ImMsgSend{}
 
 	now := time.Now()
 	err = db.Transaction(func(tx *gorm.DB) error {
-		sql := "insert into im_msg_recv_%02d (id,conv_type,type,content,extra,created_at,updated_at,`from`,`to`,target,seq,client_time) values(?,?,?,?,?,?,?,?,?,?,?,?)"
 
-		m1.Id = idgen.Next()
-		m1.ConvType = int(req.ConvType)
-		m1.Type = int(req.MsgType)
-		m1.Content = req.Content
-		m1.Extra = req.Extra
-		m1.From = req.From
-		m1.To = req.From
-		m1.Target = req.To
-		m1.Delivered = 1
-		m1.Seq = fromSeq
-
-		index := cast.ToUint32(m1.To)
-		if index != 0 {
-			index = cast.ToUint32(m1.To) % 8
-		} else {
-			index = cityhash.CityHash32([]byte(m1.To), uint32(len(m1.To))) % 8
-			log.Info(m1.To, index)
+		msg = model.ImMsgSend{
+			MsgId:      idgen.Next(),
+			ConvType:   int(req.ConvType),
+			Content:    req.Content,
+			Extra:      req.Extra,
+			Type:       int(req.MsgType),
+			Sender:     req.Sender,
+			Target:     req.Target,
+			AtUserList: "",
 		}
 
-		err = tx.Exec(fmt.Sprintf(sql, index),
-			m1.Id, m1.ConvType, m1.Type, m1.Content,
-			m1.Extra, util.TimeFormat(now), util.TimeFormat(now), m1.From, m1.To, m1.Target, m1.Seq, req.ClientTime).Error
-		if err != nil {
+		if err := tx.Create(&msg).Error; err != nil {
 			log.Error(err)
 			return err
 		}
 
-		m1.Id = idgen.Next()
-		m1.To = req.To
-		m1.Seq = toSeq
-		index = cast.ToUint32(m1.To)
-		if index != 0 {
-			index = cast.ToUint32(m1.To) % 8
-		} else {
-			index = cityhash.CityHash32([]byte(m1.To), uint32(len(m1.To))) % 8
-			log.Info(m1.To, index)
+		msgr := model.ImMsgRecv{
+			MsgId:      msg.MsgId,
+			ConvType:   msg.ConvType,
+			Content:    msg.Content,
+			Extra:      msg.Extra,
+			Type:       msg.Type,
+			Sender:     msg.Sender,
+			Target:     msg.Target,
+			Receiver:   msg.Target,
+			AtUserList: "",
 		}
-		err = tx.Exec(fmt.Sprintf(sql, index),
-			m1.Id, m1.ConvType, m1.Type, m1.Content,
-			m1.Extra, util.TimeFormat(now), util.TimeFormat(now), m1.From, m1.To, m1.Target, m1.Seq, req.ClientTime).Error
-		if err != nil {
+
+		var msgs []model.ImMsgRecv
+		// 给自己的收件箱也插入一条消息，为了多端同步
+		msgr2 := msgr
+		msgr2.Receiver = msg.Sender
+		msgs = append(msgs, msgr, msgr2)
+
+		if err := tx.Create(&msgs).Error; err != nil {
 			log.Error(err)
 			return err
 		}
 
 		return nil
 	})
-
 	if err != nil {
-		log.Error(err)
 		return
 	}
-	p := protocol.Msg{
-		Id:       m1.Id,
-		ConvType: req.ConvType,
-		Type:     req.MsgType,
-		Content:  req.Content,
-		From:     req.From,
-		To:       req.To,
-		Extra:    req.Extra,
-		SendTime: now.Unix(),
-		Seq:      fromSeq,
-	}
-	b, _ := proto.Marshal(&p)
-	pushByUin(ctx, req.From, "", b)
-
-	b, _ = proto.Marshal(&p)
-	p.Seq = toSeq
-	pushByUin(ctx, req.To, "", b)
 
 	rsp = &logic.SendRsp{
-		Id:       m1.Id,
-		Seq:      m1.Seq,
+		Code:     0,
+		Message:  "",
+		Id:       msg.MsgId,
 		SendTime: now.Unix(),
+		Seq:      0,
 	}
 
-	return
-}
-func incr(userId string) (seq int64, err error) {
-	db := dao.GetDB()
-	err = db.Transaction(func(tx *gorm.DB) error {
-		err := tx.Raw("select seq from seq where user_id=? for update", userId).Row().Scan(&seq)
-		if err != nil && err != sql.ErrNoRows {
-			log.Error(err)
-			return err
-		}
+	p := protocol.Msg{
+		Id:         msg.MsgId,
+		ConvType:   int32(req.ConvType),
+		Type:       int32(req.MsgType),
+		Content:    req.Content,
+		Sender:     req.Sender,
+		Target:     req.Target,
+		Extra:      req.Extra,
+		SendTime:   now.Unix(),
+		AtUserList: nil,
+	}
 
-		if err == sql.ErrNoRows {
-			err = tx.Exec("insert into seq (user_id,seq) values (?,?)", userId, seq+1).Error
-			if err != nil {
-				log.Error(err)
-				return err
-			}
-		} else {
-			err = tx.Exec("update seq set seq = seq + 1 where user_id = ?", userId).Error
-			if err != nil {
-				log.Error(err)
-				return err
-			}
-		}
+	b, _ := proto.Marshal(&p)
 
-		return nil
-	})
+	pushByUin(ctx, req.Sender, "", b)
+	pushByUin(ctx, req.Target, "", b)
 
-	seq = seq + 1
 	return
 }
 

@@ -53,22 +53,23 @@ message HeartbeatRsp {
 }
 
 message SendReq {
-  int32 conv_type = 1;
-  int32 msg_type = 2;
-  string from = 3;
-  string to = 4;
-  string content = 5;
-  string extra = 6;
-  int64 client_time = 7;
-  string conn_id = 8;
+  string conn_id = 1;
+  int32 conv_type = 2;
+  int32 msg_type = 3;
+  string sender = 4;
+  string target = 5;
+  string content = 6;
+  string extra = 7;
+  repeated string at_user_list = 8;
+  bool is_transparent = 9;
 }
 
 message SendRsp {
   int32 code = 1;
   string message = 2;
   int64 id = 3;
-  int64 seq = 4;
-  int64 send_time = 5;
+  int64 send_time = 4;
+  int64 seq = 5;
 }
 
 message SyncMsgReq {
@@ -87,11 +88,11 @@ message Msg {
   int32 conv_type = 2;
   int32 type = 3;
   string content = 4;
-  string from = 5;
-  string to = 6;
+  string sender = 5;
+  string target = 6;
   string extra = 7;
   int64 send_time = 8;
-  int64 seq = 9;
+  repeated string at_user_list = 9;
 }
 
 message MsgAckReq {
