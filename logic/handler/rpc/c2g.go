@@ -3,7 +3,6 @@ package rpc
 import (
 	"context"
 	"encoding/json"
-	"github.com/spf13/cast"
 	"time"
 
 	log "github.com/fztcjjl/tiger/trpc/logger"
@@ -94,13 +93,8 @@ func (l *Logic) sendC2G(ctx context.Context, req *logic.SendReq) (rsp *logic.Sen
 	}
 
 	for _, m := range members {
-		if m.Id == cast.ToInt64(req.Sender) {
-			//var excludeConnId string
-			//if conn := dao.GetConnByPlatform(req.Target, plat); conn != nil {
-			//	excludeConnId = conn.ConnId
-			//	um.PushByUin(context.Background(), m.Member, excludeConnId, b)
-			//}
-			pushByUin(ctx, m.Member, "", b)
+		if m.Member == req.Sender {
+			pushByUin(ctx, m.Member, req.ConnId, b)
 		} else {
 			pushByUin(ctx, m.Member, "", b)
 		}

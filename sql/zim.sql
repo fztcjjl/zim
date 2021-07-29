@@ -10,6 +10,37 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 
+-- 导出  表 zim.im_group 结构
+CREATE TABLE IF NOT EXISTS `im_group` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '系统编号',
+  `owner` varchar(50) NOT NULL DEFAULT '' COMMENT '群主',
+  `group_id` varchar(50) NOT NULL DEFAULT '' COMMENT '群ID',
+  `type` tinyint(4) NOT NULL DEFAULT '0' COMMENT '群类型',
+  `name` varchar(50) NOT NULL DEFAULT '' COMMENT '群名称',
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  `deleted_at` bigint(20) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE KEY `group_id_deleted_at` (`group_id`,`deleted_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC;
+
+-- 数据导出被取消选择。
+
+
+-- 导出  表 zim.im_group_member 结构
+CREATE TABLE IF NOT EXISTS `im_group_member` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '系统编号',
+  `group_id` varchar(50) NOT NULL DEFAULT '' COMMENT '群ID',
+  `member` varchar(50) NOT NULL DEFAULT '' COMMENT '成员ID',
+  `created_at` datetime NOT NULL COMMENT '创建时间',
+  `updated_at` datetime NOT NULL COMMENT '更新时间',
+  `deleted_at` bigint(20) NOT NULL DEFAULT '0' COMMENT '删除时间',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC COMMENT='群成员';
+
+-- 数据导出被取消选择。
+
+
 -- 导出  表 zim.im_msg_recv 结构
 CREATE TABLE IF NOT EXISTS `im_msg_recv` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '系统编号',

@@ -90,7 +90,7 @@ func (l *Logic) sendC2C(ctx context.Context, req *logic.SendReq) (rsp *logic.Sen
 
 	b, _ := proto.Marshal(&p)
 
-	pushByUin(ctx, req.Sender, "", b)
+	pushByUin(ctx, req.Sender, req.ConnId, b)
 	pushByUin(ctx, req.Target, "", b)
 
 	return
