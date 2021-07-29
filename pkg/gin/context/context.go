@@ -1,6 +1,7 @@
 package context
 
 import (
+	"github.com/fztcjjl/zim/pkg/errors"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cast"
 	"net/http"
@@ -16,12 +17,12 @@ func New(ctx *gin.Context) *Context {
 	return &Context{Context: ctx}
 }
 
-func (c *Context) Response(obj interface{}) {
+func (ctx *Context) Response(obj interface{}) {
 	m := make(map[string]interface{})
 	m["code"] = 0
 	m["data"] = obj
 	m["ts"] = time.Now().UnixNano()
-	c.response(http.StatusOK, m)
+	ctx.response(http.StatusOK, m)
 }
 
 func (ctx *Context) ResponseOK() {
@@ -29,22 +30,22 @@ func (ctx *Context) ResponseOK() {
 }
 
 func (ctx *Context) ResponseError(err error) {
-	//ce := errors.Parse(err.Error())
-	//
-	//m := make(map[string]interface{})
-	//m["code"] = ce.Code
-	//if ce.Message != "" {
-	//	m["message"] = ce.Message
-	//}
-	//if ce.Detail != "" {
-	//	m["detail"] = ce.Detail
-	//}
-	//m["ts"] = time.Now().UnixNano()
-	//if ce.Code == -1 {
-	//	c.response(500, m)
-	//	return
-	//}
-	//c.response(499, m)
+	ce := errors.Parse(err.Error())
+
+	m := make(map[string]interface{})
+	m["code"] = ce.Code
+	if ce.Message != "" {
+		m["message"] = ce.Message
+	}
+	if ce.Detail != "" {
+		m["detail"] = ce.Detail
+	}
+	m["ts"] = time.Now().UnixNano()
+	if ce.Code == -1 {
+		ctx.response(500, m)
+		return
+	}
+	ctx.response(499, m)
 
 	return
 }

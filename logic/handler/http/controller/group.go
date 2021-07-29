@@ -1,13 +1,13 @@
 package controller
 
-import "github.com/fztcjjl/zim/pkg/context"
+import "github.com/fztcjjl/zim/pkg/gin/context"
 
 type GroupController struct {
 }
 
 // 获取 App 中的所有群组
 func (t *GroupController) GetGroupList(ctx *context.Context) {
-
+	//ctx.GetHeader()
 }
 
 // 创建群组

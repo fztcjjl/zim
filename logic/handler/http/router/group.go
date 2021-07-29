@@ -2,7 +2,7 @@ package router
 
 import (
 	"github.com/fztcjjl/zim/logic/handler/http/controller"
-	"github.com/fztcjjl/zim/logic/handler/http/router/helper"
+	"github.com/fztcjjl/zim/pkg/gin/helper"
 	"github.com/gin-gonic/gin"
 )
 

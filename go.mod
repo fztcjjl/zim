@@ -11,6 +11,8 @@ replace (
 require (
 	github.com/cespare/xxhash/v2 v2.1.1
 	github.com/fztcjjl/tiger v0.0.0-20210213024013-a5b016d9a95a
+	github.com/gin-contrib/cors v1.3.1 // indirect
+	github.com/gin-contrib/requestid v0.0.1 // indirect
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-redis/redis/v8 v8.7.1
 	github.com/golang/protobuf v1.4.3
@@ -21,6 +23,7 @@ require (
 	github.com/panjf2000/gnet v1.4.1
 	github.com/spf13/cast v1.3.0
 	github.com/spf13/viper v1.7.1
+	github.com/tiaotiao/mapstruct v0.0.0-20170819235540-950894f801ed // indirect
 	github.com/zentures/cityhash v0.0.0-20131128155616-cdd6a94144ab
 	google.golang.org/grpc v1.29.1
 	google.golang.org/protobuf v1.25.0

@@ -1,6 +1,7 @@
 package router
 
 import (
+	"github.com/fztcjjl/tiger/pkg/middleware/gin/trace"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
@@ -9,7 +10,7 @@ import (
 )
 
 func Setup(engine *gin.Engine) {
-	//initSentinel()
+	engine.Use(trace.Trace())
 	engine.NoMethod(func(ctx *gin.Context) {
 		ctx.String(http.StatusMethodNotAllowed, http.StatusText(http.StatusMethodNotAllowed))
 	})
@@ -54,4 +55,6 @@ func Setup(engine *gin.Engine) {
 	//api.RegisterV1(engine)
 	//RegisterUmsgRouter(engine)
 	//RegisterNotifyRouter(engine)
+
+	Register(engine)
 }
